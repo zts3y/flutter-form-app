@@ -12,7 +12,7 @@ packages:
   analysis_defaults:
     dependency: "direct dev"
     description:
-      path: "../analysis_defaults"
+      path: analysis_defaults
       relative: true
     source: path
     version: "0.0.0"
