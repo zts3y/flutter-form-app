@@ -7,7 +7,7 @@ pipeline {
     }
     
     environment {
-        FLUTTER_HOME = '/flutter'
+        FLUTTER_HOME = '/sdks/flutter/bin/'
         ANDROID_SDK_ROOT = '/android-sdk'
         PATH = "$FLUTTER_HOME/bin:$ANDROID_SDK_ROOT/tools/bin:$PATH"
         APP_NAME = 'flutter-form-app'
@@ -52,12 +52,20 @@ pipeline {
                                         -Dsonar.projectKey=${env.APP_NAME} \
                                         -Dsonar.sources=./lib \
                                         -Dsonar.host.url=${SONAR_HOST_URL} \
-                                        -Dsonar.login=${SONAR_AUTH_TOKEN}
                                     """
                                 }
                             }                    
                         }
                     }
+                }
+            }
+        }
+        stage("Quality Gate") {
+            steps {
+                timeout(time: 1, unit: 'HOURS') {
+                    // Parameter indicates whether to set pipeline to UNSTABLE if Quality Gate fails
+                    // true = set pipeline to UNSTABLE, false = don't
+                    waitForQualityGate abortPipeline: true
                 }
             }
         }
