@@ -21,7 +21,6 @@ pipeline {
                 }
             }
         }
-        
         stage('Flutter Clean') {
             steps {
                 container('flutter') {
@@ -32,57 +31,64 @@ pipeline {
                 }
             }
         }
-        stage('Flutter Tests') {
-            steps {
-                container('flutter') {
-                    sh '/sdks/flutter/bin/flutter test'
-                }
-            }
-        }
-        stage('Sonarqube Tests') {
-            steps {
-                container('flutter') {
-                    script {
-                        def scannerHome = tool 'sonarqube'
-                        withSonarQubeEnv('sonarqube') {
-                            sh """
-                                ${scannerHome}/bin/sonar-scanner \
-                                -Dsonar.projectKey=${env.APP_NAME} \
-                                -Dsonar.sources=./lib \
-                                -Dsonar.host.url=${SONAR_HOST_URL} \
-                                -Dsonar.login=${SONAR_AUTH_TOKEN}
-                            """
+
+        stage('Tests'){
+            parallel {
+                stage('Flutter Tests') {
+                    steps {
+                        container('flutter') {
+                            sh '/sdks/flutter/bin/flutter test'
                         }
-                    }                    
+                    }
+                }
+                stage('Sonarqube Tests') {
+                    steps {
+                        container('flutter') {
+                            script {
+                                def scannerHome = tool 'sonarqube'
+                                withSonarQubeEnv('sonarqube') {
+                                    sh """
+                                        ${scannerHome}/bin/sonar-scanner \
+                                        -Dsonar.projectKey=${env.APP_NAME} \
+                                        -Dsonar.sources=./lib \
+                                        -Dsonar.host.url=${SONAR_HOST_URL} \
+                                        -Dsonar.login=${SONAR_AUTH_TOKEN}
+                                    """
+                                }
+                            }                    
+                        }
+                    }
                 }
             }
         }
-        stage('Build Web') {
-            steps {
-                container('flutter') {
-                    sh '/sdks/flutter/bin/flutter build web --release'
+        stage('Build') {
+            parallel {
+                stage('Build Web') {
+                    steps {
+                        container('flutter') {
+                            sh '/sdks/flutter/bin/flutter build web --release'
+                        }
+                    }
+                    post {
+                        success {
+                            archiveArtifacts artifacts: 'build/web/**/*', fingerprint: true
+                        }
+                    }
                 }
-            }
-            post {
-                success {
-                    archiveArtifacts artifacts: 'build/web/**/*', fingerprint: true
+                stage('Build Android') {
+                    steps {
+                        container('flutter') {
+                            sh '/sdks/flutter/bin/flutter build apk --release'
+                        }
+                    }
+                    post {
+                        success {
+                            archiveArtifacts artifacts: 'build/app/outputs/flutter-apk/app-release.apk', fingerprint: true
+                        }
+                    }
                 }
             }
         }
-        
-        stage('Build Android') {
-            steps {
-                container('flutter') {
-                    sh '/sdks/flutter/bin/flutter build apk --release'
-                }
-            }
-            post {
-                success {
-                    archiveArtifacts artifacts: 'build/app/outputs/flutter-apk/app-release.apk', fingerprint: true
-                }
-            }
-        }
-        
     }
     
     post {
