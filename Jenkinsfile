@@ -38,6 +38,7 @@ pipeline {
                     steps {
                         container('flutter') {
                             sh '/sdks/flutter/bin/flutter test'
+                            sh 'flutter test --machine --coverage > tests.output'
                         }
                     }
                 }
