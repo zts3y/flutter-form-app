@@ -64,34 +64,32 @@ pipeline {
                 }
             }
         }
-        stage('Build') {
-            parallel {
-                stage('Build Web') {
-                    steps {
-                        container('flutter') {
-                            sh 'flutter build web --release'
-                        }
-                    }
-                    post {
-                        success {
-                            archiveArtifacts artifacts: 'build/web/**/*', fingerprint: true
-                        }
-                    }
+        
+        stage('Build Web') {
+            steps {
+                container('flutter') {
+                    sh 'flutter build web --release'
                 }
-                stage('Build Android') {
-                    steps {
-                        container('flutter') {
-                            sh 'flutter build apk --release'
-                        }
-                    }
-                    post {
-                        success {
-                            archiveArtifacts artifacts: 'build/app/outputs/flutter-apk/app-release.apk', fingerprint: true
-                        }
-                    }
+            }
+            post {
+                success {
+                    archiveArtifacts artifacts: 'build/web/**/*', fingerprint: true
                 }
             }
         }
+        stage('Build Android') {
+            steps {
+                container('flutter') {
+                    sh 'flutter build apk --release'
+                }
+            }
+            post {
+                success {
+                    archiveArtifacts artifacts: 'build/app/outputs/flutter-apk/app-release.apk', fingerprint: true
+                }
+            }
+        }
+            
     }
     
     post {
