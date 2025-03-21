@@ -80,6 +80,7 @@ pipeline {
         stage('Build Android') {
             steps {
                 container('flutter') {
+                    sh 'yes | flutter doctor --android-licenses'
                     sh 'flutter build apk --release'
                 }
             }
