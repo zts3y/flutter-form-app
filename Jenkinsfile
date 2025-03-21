@@ -7,9 +7,6 @@ pipeline {
     }
     
     environment {
-        FLUTTER_HOME = '/sdks/flutter/bin/'
-        ANDROID_SDK_ROOT = '/android-sdk'
-        PATH = "$FLUTTER_HOME/bin:$ANDROID_SDK_ROOT/tools/bin:$PATH"
         APP_NAME = 'flutter-form-app'
     }
     
@@ -24,43 +21,42 @@ pipeline {
         stage('Flutter Clean') {
             steps {
                 container('flutter') {
-                    sh '/sdks/flutter/bin/flutter --version'
-                    // sh '/sdks/flutter/bin/flutter doctor'
-                    sh '/sdks/flutter/bin/flutter clean'
-                    sh '/sdks/flutter/bin/flutter pub get'
+                    sh 'flutter --version'
+                    // sh 'flutter doctor'
+                    sh 'flutter clean'
+                    sh 'flutter pub get'
                 }
             }
         }
 
-        stage('Tests'){
-            parallel {
-                stage('Flutter Tests') {
-                    steps {
-                        container('flutter') {
-                            sh '/sdks/flutter/bin/flutter test'
-                            sh 'flutter test --machine --coverage > tests.output'
-                        }
-                    }
-                }
-                stage('Sonarqube Tests') {
-                    steps {
-                        container('flutter') {
-                            script {
-                                def scannerHome = tool 'sonarqube'
-                                withSonarQubeEnv('sonarqube') {
-                                    sh '/sdks/flutter/bin/flutter pub get'
-                                    sh """
-                                        ${scannerHome}/bin/sonar-scanner \
-                                        -Dsonar.projectKey=${env.APP_NAME} \
-                                        -Dsonar.sources=./lib \
-                                        -Dsonar.host.url=${SONAR_HOST_URL} \
-                                    """
-                                }
-                            }                    
-                        }
-                    }
+        
+        stage('Flutter Tests') {
+            steps {
+                container('flutter') {
+                    sh 'flutter test'
+                    sh 'flutter test --machine --coverage > tests.output'
                 }
             }
+        }
+        stage('Sonarqube Tests') {
+            steps {
+                container('flutter') {
+                    script {
+                        def scannerHome = tool 'sonarqube'
+                        withSonarQubeEnv('sonarqube') {
+                            sh 'flutter pub get'
+                            sh """
+                                ${scannerHome}/bin/sonar-scanner \
+                                -Dsonar.projectKey=${env.APP_NAME} \
+                                -Dsonar.sources=./lib \
+                                -Dsonar.host.url=${SONAR_HOST_URL} \
+                            """
+                        }
+                    }                    
+                }
+            }
+        }
+             
         }
         stage("Quality Gate") {
             steps {
@@ -76,7 +72,7 @@ pipeline {
                 stage('Build Web') {
                     steps {
                         container('flutter') {
-                            sh '/sdks/flutter/bin/flutter build web --release'
+                            sh 'flutter build web --release'
                         }
                     }
                     post {
@@ -88,7 +84,7 @@ pipeline {
                 stage('Build Android') {
                     steps {
                         container('flutter') {
-                            sh '/sdks/flutter/bin/flutter build apk --release'
+                            sh 'flutter build apk --release'
                         }
                     }
                     post {
