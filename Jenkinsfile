@@ -44,7 +44,6 @@ pipeline {
                     script {
                         def scannerHome = tool 'sonarqube'
                         withSonarQubeEnv('sonarqube') {
-                            sh 'flutter pub get'
                             sh """
                                 ${scannerHome}/bin/sonar-scanner \
                                 -Dsonar.projectKey=${env.APP_NAME} \
